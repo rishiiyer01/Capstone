@@ -2,7 +2,7 @@
 %to be used in raspb pi, this script is explicitly to compute the
 %Controller matrix that expresses the dynamics
 %everything will be in SI unit
-
+clc; clear; close all;
 % %def constants rn these are all wrong and probably not even right order
 % of mag wise
 I=4;

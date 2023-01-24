@@ -28,6 +28,8 @@ Thrust=94;%N
 C3=Thrust*leverArmMotor/I;
 %B matrix in the dynamical system
 B=[0 0 0 0; 0 0 0 0; C3 0 0 0; 0 C3 0 0];
+%%
+Bchopped=[C3 0 0 0; 0 C3 0 0];
 %%%from rishi Jan 16 2022, the B matrix that determines the optimal control
 %%tf had to be edited such that it was clear that only the angular output
 %%could be changed into angular acceleration via the motor's thrust

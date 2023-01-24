@@ -6,8 +6,8 @@
 % %def constants rn these are all wrong and probably not even right order
 % of mag wise
 I=4;
-leverArm=1; %%cp-cg, center of pressure-center of gravity
-CNa=0.1;
+leverArm=0.1; %%cp-cg, center of pressure-center of gravity
+CNa=37*pi/180;
 %%putting aerodynamic plant+control in a system of form xdot=Ax+Bu, where
 %%x represents the state
 density=1;
@@ -21,13 +21,16 @@ A=[0 0 1 0; 0 0 0 1; C1 0 C2 0; 0 C1 0 C2];
 %%differential equation
 %%our u input here is the angle, we will have to change this to represent
 %%the actual actuation of the piston, AJ i can explain this in person
-leverArmMotor=2;
-Thrust=3000;%N
+leverArmMotor=1;
+Thrust=94;%N
 %torque is then Thrust*LeverArmMotor*theta, theta is in our state
 %recall that our state vector is [theta1,theta2,thetaDot1,thetaDot2]
-C3=Thrust*leverArmMotor;
+C3=Thrust*leverArmMotor/I;
 %B matrix in the dynamical system
-B=[0 0 1 0; 0 0 0 1; C3 0 0 0; 0 C3 0 0];
+B=[0 0 0 0; 0 0 0 0; C3 0 0 0; 0 C3 0 0];
+%%%from rishi Jan 16 2022, the B matrix that determines the optimal control
+%%tf had to be edited such that it was clear that only the angular output
+%%could be changed into angular acceleration via the motor's thrust
 %%defining the Q and R matrices, making them default for now, effectively
 %%these are the quantities we play with for tuning, where R defines the
 %%weight of our actuators on the optimization function, and Q defines the

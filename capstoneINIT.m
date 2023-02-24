@@ -13,7 +13,7 @@ CNa=37*pi/180;
 density=1;
 v=150; %%roughly half the speed of sound, this is the freestream air speed
 Area=0.25*pi*(6*25.4)^2;
-C1=-CNa*leverArm*(0.5*density*v^2)/I;
+C1=CNa*leverArm*(0.5*density*v^2)/I;
 C2=-((CNa*(leverArm^2)*(0.5*density*v)/I)+(0.055*0.1*0.1));
 A=[0 0 1 0; 0 0 0 1; C1 0 C2 0; 0 C1 0 C2]; 
 %%note that damping is basically miniscule compared to spring constant

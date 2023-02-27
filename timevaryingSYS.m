@@ -1,12 +1,9 @@
-% %capstone SIM+CONTROL 
-%to be used in raspb pi, this script is explicitly to compute the
-%Controller matrix that expresses the dynamics
-%everything will be in SI unit
+%%time-variant state space model of the LQR alg derived from LTI dynamics
 clc; clear; close all;
 % %def constants rn these are all wrong and probably not even right order
 % of mag wise
 I=1.5;
-leverArm=-1.988; %%cp-cg, center of pressure-center of gravity
+leverArm=1.988; %%cp-cg, center of pressure-center of gravity
 CNa=1.71;
 %%putting aerodynamic plant+control in a system of form xdot=Ax+Bu, where
 %%x represents the state
@@ -38,7 +35,14 @@ Bchopped=[C3 0 0 0; 0 C3 0 0];
 %%weight of our actuators on the optimization function, and Q defines the
 %%weight of how close we have to be to the reference (0 angle, 0 angular
 %%velocity) We can talk more on this
-Q=[0.1 0 0 0; 0 0.1 0 0; 0 0 0.1 0; 0 0 0 0.1];
+Q=[1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1];
 R=[1 0; 0 1];
 %R=Q because i was lazy
 [K1,S1,P1] = lqr(A,B,Q,R);
+C=eye(4,4);
+D=zeros(4,2);
+sys=ss(A-B*K1,B,C,D);
+%%pole placement experiment
+%K2=place(A,B,[-4,-4,-400,-400]);
+%sys2=ss(A-B*K2,B,C,D);
+%step(sys2)

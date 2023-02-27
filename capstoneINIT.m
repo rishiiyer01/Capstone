@@ -6,13 +6,13 @@ clc; clear; close all;
 % %def constants rn these are all wrong and probably not even right order
 % of mag wise
 I=1.5;
-leverArm=-0.1; %%cp-cg, center of pressure-center of gravity
-CNa=37*pi/180;
+leverArm=-1.868; %%cp-cg, center of pressure-center of gravity
+CNa=1.71;
 %%putting aerodynamic plant+control in a system of form xdot=Ax+Bu, where
 %%x represents the state
 density=1;
 v=150; %%roughly half the speed of sound, this is the freestream air speed
-Area=0.25*pi*(6*25.4)^2;
+Area=0.00791;
 C1=CNa*leverArm*(0.5*density*v^2)/I;
 C2=-((CNa*(leverArm^2)*(0.5*density*v)/I)+(0.055*0.1*0.1));
 A=[0 0 1 0; 0 0 0 1; C1 0 C2 0; 0 C1 0 C2]; 
@@ -21,7 +21,7 @@ A=[0 0 1 0; 0 0 0 1; C1 0 C2 0; 0 C1 0 C2];
 %%differential equation
 %%our u input here is the angle, we will have to change this to represent
 %%the actual actuation of the piston, AJ i can explain this in person
-leverArmMotor=1;
+leverArmMotor=0.96;
 Thrust=94;%N
 %torque is then Thrust*LeverArmMotor*theta, theta is in our state
 %recall that our state vector is [theta1,theta2,thetaDot1,thetaDot2]

@@ -47,3 +47,7 @@ step(sys)
 %K2=place(A,B,[-4,-4,-400,-400]);
 %sys2=ss(A-B*K2,B,C,D);
 %step(sys2)
+%%defining a function that alters the matrices A,B
+%K1 is fixed
+
+function [A1,B1]=

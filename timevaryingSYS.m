@@ -42,12 +42,14 @@ R=[1 0; 0 1];
 C=eye(4,4);
 D=zeros(4,2);
 sys=ss(A-B*K1,B,C,D);
-step(sys)
+%step(sys)
 %%pole placement experiment
-%K2=place(A,B,[-4,-4,-400,-400]);
-%sys2=ss(A-B*K2,B,C,D);
-%step(sys2)
+K2=place(A,B,[-4,-4,-400,-400]);
+sys2=ss(A-B*K2,B,C,D);
+step(sys2)
 %%defining a function that alters the matrices A,B
 %K1 is fixed
-
-function [A1,B1]=
+table=xlsread('rocketXL.xlsx');
+velocity=table(:,2);
+time=table(:,1);
+thrust=table(:,3);

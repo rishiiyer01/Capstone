@@ -13,7 +13,7 @@ dt=0.01 #represents clock speed
 while 0:
     t=t+dt
     ref=np.sin(5*t)
-    speed=1
+    speed=1.4
     #proportional control
     s=(pos-ref)
     pos=pos-(s*dt)
@@ -37,7 +37,7 @@ fig, ax = plt.subplots(1, 1)
 while True:
     # Increment time and calculate reference signal
     t += dt
-    ref = np.sin(5 * t)
+    ref = np.sin(t)
 
     # Calculate error and update position
     error.append(pos - ref)

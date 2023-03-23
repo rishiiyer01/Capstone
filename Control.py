@@ -19,5 +19,5 @@ B=[[0, 0], [0, 0], [C3, 0],[0, C3]]
 Q=np.eye(4)
 R=np.eye(2)
 K, S, E = c.lqr(A, B, Q, R)
-print(K)
+
 

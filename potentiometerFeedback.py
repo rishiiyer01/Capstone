@@ -13,7 +13,7 @@ dt=0.01 #represents clock speed
 while 0:
     t=t+dt
     ref=np.sin(5*t)
-    speed=1.4
+    speed=1
     #proportional control
     s=(pos-ref)
     pos=pos-(s*dt)
@@ -41,6 +41,7 @@ while True:
 
     # Calculate error and update position
     error.append(pos - ref)
+    v=0.8*error[-1]+0.2*(error[-1]-error[-2])
     pos = pos - error[-1] * dt
 
     # Store data

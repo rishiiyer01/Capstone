@@ -8,10 +8,10 @@ CNa=1.71;
 %%putting aerodynamic plant+control in a system of form xdot=Ax+Bu, where
 %%x represents the state
 density=1;
-v=150; %%roughly half the speed of sound, this is the freestream air speed
+v=20; %%roughly half the speed of sound, this is the freestream air speed
 Area=0.00791;
 C1=CNa*leverArm*(0.5*density*v^2)/I;
-C2=-((CNa*(leverArm^2)*(0.5*density*v)/I)+(0.055*0.1*0.1));
+C2=-((CNa*(leverArm^2)*(0.5*density*v)/I)-(0.055*0.1*0.1));
 A=[0 0 1 0; 0 0 0 1; C1 0 C2 0; 0 C1 0 C2]; 
 %%note that damping is basically miniscule compared to spring constant
 %%calling it spring constant because this is basically just a mass spring
@@ -35,7 +35,7 @@ Bchopped=[C3 0 0 0; 0 C3 0 0];
 %%weight of our actuators on the optimization function, and Q defines the
 %%weight of how close we have to be to the reference (0 angle, 0 angular
 %%velocity) We can talk more on this
-Q=[1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1];
+Q=[1000 0 0 0; 0 1000 0 0; 0 0 10 0; 0 0 0 10];
 R=[1 0; 0 1];
 %R=Q because i was lazy
 [K1,S1,P1] = lqr(A,B,Q,R);
@@ -46,10 +46,38 @@ sys=ss(A-B*K1,B,C,D);
 %%pole placement experiment
 K2=place(A,B,[-4,-4,-400,-400]);
 sys2=ss(A-B*K2,B,C,D);
-step(sys2)
+step(sys)
 %%defining a function that alters the matrices A,B
 %K1 is fixed
 table=xlsread('rocketXL.xlsx');
 velocity=table(:,2);
 time=table(:,1);
 thrust=table(:,3);
+dt=0.001;
+xstore=zeros(length(time),4);
+x0=[0.6;0.6;0;0];
+for i=1:length(time)
+    v0=velocity(i);
+    T=thrust(i);
+    C1=CNa*leverArm*(0.5*density*v0^2)/I;
+    C2=-((CNa*(leverArm^2)*(0.5*density*v0)/I)-(0.055*0.1*0.1));
+    A=[0 0 1 0; 0 0 0 1; C1 0 C2 0; 0 C1 0 C2];
+    C3=T*leverArmMotor/I;
+    %B matrix in the dynamical system
+    B=[0 0; 0 0; C3 0; 0 C3];
+    
+    %timestep
+    xstore(i+1,:)=transpose(x0)+5*transpose((A-B*K1)*x0*dt);
+    x0=transpose(xstore(i+1,:));
+end
+figure (2)
+plot(time,xstore(2:end,1))
+
+
+
+
+
+
+
+
+

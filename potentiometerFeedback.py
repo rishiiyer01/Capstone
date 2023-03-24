@@ -41,7 +41,10 @@ while True:
 
     # Calculate error and update position
     error.append(pos - ref)
-    v=0.8*error[-1]+0.2*(error[-1]-error[-2])
+    if len(error)>1:
+        v=0.5*error[-1]+0.5*(error[-1]-error[-2])
+    else:
+        v=error[-1]
     pos = pos - error[-1] * dt
 
     # Store data

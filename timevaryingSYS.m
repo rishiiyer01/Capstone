@@ -35,7 +35,7 @@ Bchopped=[C3 0 0 0; 0 C3 0 0];
 %%weight of our actuators on the optimization function, and Q defines the
 %%weight of how close we have to be to the reference (0 angle, 0 angular
 %%velocity) We can talk more on this
-Q=[1000 0 0 0; 0 1000 0 0; 0 0 10 0; 0 0 0 10];
+Q=[10000 0 0 0; 0 10000 0 0; 0 0 10 0; 0 0 0 10];
 R=[1 0; 0 1];
 %R=Q because i was lazy
 [K1,S1,P1] = lqr(A,B,Q,R);
@@ -52,10 +52,11 @@ step(sys)
 table=xlsread('rocketXL.xlsx');
 velocity=table(:,2);
 time=table(:,1);
+
 thrust=table(:,3);
 dt=0.001;
 xstore=zeros(length(time),4);
-x0=[0.6;0.6;0;0];
+x0=[0.25;0.25;0;0];
 for i=1:length(time)
     v0=velocity(i);
     T=thrust(i);
@@ -71,13 +72,27 @@ for i=1:length(time)
     x0=transpose(xstore(i+1,:));
 end
 figure (2)
-plot(time,xstore(2:end,1))
-
-
-
-
-
-
+plot(time/4,xstore(2:end,1))
+hold on 
+x0=[0.25;0.25;0;0];
+for i=1:length(time)
+    
+    C1=CNa*leverArm*(0.5*density*v^2)/I;
+    C2=-((CNa*(leverArm^2)*(0.5*density*v)/I)-(0.055*0.1*0.1));
+    A=[0 0 1 0; 0 0 0 1; C1 0 C2 0; 0 C1 0 C2];
+    C3=Thrust*leverArmMotor/I;
+    %B matrix in the dynamical system
+    B=[0 0; 0 0; C3 0; 0 C3];
+    
+    %timestep
+    xstore(i+1,:)=transpose(x0)+8*transpose((A-B*K1)*x0*dt);
+    x0=transpose(xstore(i+1,:));
+end
+plot(time/4,xstore(2:end,1))
+title('Simulated Time Response with Initial Conditions, LTI system vs Time Varying Nonlinear System')
+xlabel('time (s)') 
+ylabel('angle of attack (rad)')
+legend({'time-varying nonlinear','linear time invariant'},'Location','southwest')
 
 
 

@@ -1,10 +1,7 @@
 import RPi.GPIO as GPIO
 
 
-# Simple example of reading the MCP3008 analog input channels and printing
-# them all out.
-# Author: Tony DiCola
-# License: Public Domain
+
 import time
 
 import busio
@@ -12,14 +9,15 @@ import digitalio
 import board
 import adafruit_mcp3xxx.mcp3008 as MCP
 from adafruit_mcp3xxx.analog_in import AnalogIn
+GPIO.setmode(GPIO.BCM)
 
 # create the spi bus
-spi = busio.SPI(clock=board.SCK, MISO=board.MISO, MOSI=board.MOSI)
-GPIO.setup(40,GPIO.OUT)
-GPIO.output(40,1)
-GPIO.setup(3, GPIO.OUT)
-GPIO.setup(32,GPIO.OUT)
-p=GPIO.PWM(32,1)
+spi = busio.SPI(clock=board.SCK, MOSI=board.MOSI, MISO=board.MISO)
+GPIO.setup(21,GPIO.OUT)
+GPIO.output(21,1)
+GPIO.setup(2, GPIO.OUT)
+GPIO.setup(12,GPIO.OUT)
+p=GPIO.PWM(12,1000)
 # create the cs (chip select)
 cs = digitalio.DigitalInOut(board.D5)
 
@@ -31,19 +29,14 @@ chan = AnalogIn(mcp, MCP.P0)
 
 print("Raw ADC Value: ", chan.value)
 print("ADC Voltage: " + str(chan.voltage) + "V")
-while True:
-
-    print('Raw ADC Value: ', chan.value)
-    print('ADC Voltage: ' + str(chan.voltage) + 'V')
-    time.sleep(0.5)
+while 1:
+    GPIO.output(2,0)
+    if chan.voltage>=1.5:
+        p.stop()
+    else:
+        p.start(100)
+    print(chan.voltage)
     
 
-# set up GPIO pin
-GPIO.setup(3, GPIO.OUT)
-GPIO.setup(32,GPIO.OUT)
-p=GPIO.PWM(32,1)
-while 1:
-    GPIO.output(3,0)
-    p.start(100)
 
 

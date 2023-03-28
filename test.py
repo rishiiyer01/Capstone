@@ -38,6 +38,8 @@ chan2=AnalogIn(mcp2, MCP.P0)
 
 print("Raw ADC Value: ", chan.value)
 print("ADC Voltage: " + str(chan.voltage) + "V")
+print(sensor.calibration_status)
+##def calibration
 while 1:
     GPIO.output(4,0)
     GPIO.output(26,0)
@@ -46,7 +48,9 @@ while 1:
     else:
         p.start(100)
         p2.start(100)
-    print(chan.voltage,chan2.voltage)
+    #print(chan.voltage,chan2.voltage,sensor.euler)
+    print(sensor.offsets_gyroscope,'*************',sensor.calibration_status)
+
     
 
 

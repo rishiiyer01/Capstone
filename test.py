@@ -53,40 +53,18 @@ sensor._write_register(0x55,sensor._read_register(0x55))
 print(sensor._read_register(0x55))
 #sensor.mode=adafruit_bno055.NDOF_MODE
 while 1:
-    GPIO.output(4,1)
-    GPIO.output(26,1)
-    if chan.voltage>=0.55:
-        p.stop()
-    else:
-        p.start(100)
-        p2.start(100)
-    #print(chan.voltage,chan2.voltage,sensor.euler)
-    print(sensor.calibration_status,sensor.offsets_gyroscope, sensor.offsets_accelerometer,sensor.offsets_magnetometer,sensor.radius_accelerometer,sensor.radius_magnetometer)
-    print(sensor._read_register(0x55),sensor._read_register(0x56),sensor._read_register(0x57),sensor._read_register(0x58),sensor._read_register(0x59),sensor._read_register(0x5A),sensor._read_register(0x5B),sensor._read_register(0x5C),sensor._read_register(0x5D),sensor._read_register(0x5E),sensor._read_register(0x5F),sensor._read_register(0x60),sensor._read_register(0x61),sensor._read_register(0x62),sensor._read_register(0x63),sensor._read_register(0x64),sensor._read_register(0x65),sensor._read_register(0x66),sensor._read_register(0x67),sensor._read_register(0x68),sensor._read_register(0x69),sensor._read_register(0x6A))
-    if sensor.calibration_status==(3,3,3,3):
-        sensor.mode=adafruit_bno055.CONFIG_MODE
-        print(sensor._read_register(0x55),sensor._read_register(0x56),sensor._read_register(0x57),sensor._read_register(0x58),sensor._read_register(0x59),sensor._read_register(0x5A),sensor._read_register(0x5B),sensor._read_register(0x5C),sensor._read_register(0x5D),sensor._read_register(0x5E),sensor._read_register(0x5F),sensor._read_register(0x60),sensor._read_register(0x61),sensor._read_register(0x62),sensor._read_register(0x63),sensor._read_register(0x64),sensor._read_register(0x65),sensor._read_register(0x66),sensor._read_register(0x67),sensor._read_register(0x68),sensor._read_register(0x69),sensor._read_register(0x6A))
-        sensor._write_register(0x55,sensor._read_register(0x55))
-        sensor._write_register(0x56,sensor._read_register(0x56))
-        sensor._write_register(0x57,sensor._read_register(0x57))
-        sensor._write_register(0x58,sensor._read_register(0x58))
-        sensor._write_register(0x59,sensor._read_register(0x59))
-        sensor._write_register(0x5A,sensor._read_register(0x5A))
-        sensor._write_register(0x5B,sensor._read_register(0x5B))
-        sensor._write_register(0x5C,sensor._read_register(0x5C))
-        sensor._write_register(0x5D,sensor._read_register(0x5D))
-        sensor._write_register(0x5E,sensor._read_register(0x5E))
-        sensor._write_register(0x5F,sensor._read_register(0x5F))
-        sensor._write_register(0x60,sensor._read_register(0x60))
-        sensor._write_register(0x61,sensor._read_register(0x61))
-        sensor._write_register(0x62,sensor._read_register(0x62))
-        sensor._write_register(0x63,sensor._read_register(0x63))
-        sensor._write_register(0x64,sensor._read_register(0x64))
-        sensor._write_register(0x65,sensor._read_register(0x65))
-        sensor._write_register(0x66,sensor._read_register(0x66))
-        sensor._write_register(0x67,sensor._read_register(0x67))
-        sensor._write_register(0x68,sensor._read_register(0x68))
-        sensor._write_register(0x69,sensor._read_register(0x69))
-        sensor._write_register(0x6A,sensor._read_register(0x6A))
-        break
-
+    if sensor.calibration_status[1]==3:
+        GPIO.output(4,1)
+        GPIO.output(26,1)
+        if chan.voltage>=0.55 or chan2.voltage>=0.55:
+            p.stop()
+        else:
+            p.start(100)
+            p2.start(100)
+        #print(chan.voltage,chan2.voltage,sensor.euler)
+        print(sensor.euler)
+        #print(sensor._read_register(0x55),sensor._read_register(0x56),sensor._read_register(0x57),sensor._read_register(0x58),sensor._read_register(0x59),sensor._read_register(0x5A),sensor._read_register(0x5B),sensor._read_register(0x5C),sensor._read_register(0x5D),sensor._read_register(0x5E),sensor._read_register(0x5F),sensor._read_register(0x60),sensor._read_register(0x61),sensor._read_register(0x62),sensor._read_register(0x63),sensor._read_register(0x64),sensor._read_register(0x65),sensor._read_register(0x66),sensor._read_register(0x67),sensor._read_register(0x68),sensor._read_register(0x69),sensor._read_register(0x6A))
+        continue 
+    else: 
+        print(sensor.euler,sensor.calibration_status)
+        continue 

@@ -31,7 +31,7 @@ Thrust=92;%N
 %recall that our state vector is [theta1,theta2,thetaDot1,thetaDot2]
 C3=Thrust*leverArmMotor/I;
 %B matrix in the dynamical system
-B=[0 0 0 0; 0 0 0 0; C3 0 0 0; 0 C3 0 0];
+B=[0 0; 0 0; C3 0; 0 C3];
 %%
 Bchopped=[C3 0 0 0; 0 C3 0 0];
 %%%from rishi Jan 16 2022, the B matrix that determines the optimal control
@@ -46,5 +46,8 @@ Q=[1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1];
 R=[1,0,0,0;0,1,0,0;0,0,1,0;0,0,0,1];
 %R=Q because i was lazy
 [K1,S1,P1] = lqr(A,B,Q,R);
+C=eye(4,4);
+D=zeros(4,2);
 sys=ss(A-B*K1,B,C,D);
+
 step(sys)

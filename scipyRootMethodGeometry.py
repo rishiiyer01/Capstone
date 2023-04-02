@@ -44,11 +44,11 @@ def f2(theta):
     y20=1.2385
     #s1
     
-    s1=(R*np.cos(thetad)+a*np.sin(thetad)-y20)-((L**2)-(R*np.sin(thetad) -a*np.cos(thetad)-x2)**2)*0.5
+    s1=(R*np.cos(thetad)+a*np.sin(thetad)-y20)-((L**2)-(R*np.sin(thetad) -a*np.cos(thetad)-x2)**2)**0.5
     
     thetad2=theta2*np.pi/180
     #s2
-    s2=-(R*np.cos(thetad2)+a*np.sin(thetad2)-y20)-((L**2)-(R*np.sin(thetad2) -a*np.cos(thetad2)-x2)**2)*0.5
+    s2=(R*np.cos(thetad2)+a*np.sin(thetad2)-y20)-((L**2)-(R*np.sin(thetad2) -a*np.cos(thetad2)-x2)**2)**0.5
     return(s1,s2)
 theta=np.array([-15,15])
 sol=scipy.optimize.root(f1,[0.25,0.25],args=theta)

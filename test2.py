@@ -1,11 +1,11 @@
 
 import RPi.GPIO as GPIO
-
+import numpy as np
 
 #252 255 217 255 223 255 41 2 223 255 242 5 255 255 251 255 0 0 232 3 98 5
 #234 255 226 255 228 255 239 1 48 255 239 7 0 0 251 255 1 0 232 3 248 5
 import time
-
+x=np.arange(3)
 import busio
 import digitalio
 import board
@@ -26,21 +26,28 @@ spi = busio.SPI(clock=board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 cs = digitalio.DigitalInOut(board.D5)
 cs2=digitalio.DigitalInOut(board.D6)
 # create the mcp object
-mcp = MCP.MCP3008(spi, cs)
-mcp2=MCP.MCP3008(spi,cs2)
+mcp = MCP.MCP3008(spi, cs2)
+mcp2=MCP.MCP3008(spi,cs)
 
 
-chan = AnalogIn(mcp, MCP.P0)
+chan1 = AnalogIn(mcp, MCP.P0)
 chan2=AnalogIn(mcp2, MCP.P0)
 
-while 1:
-    GPIO.output(4,0)
-    GPIO.output(26,0)
-    p.start(50)
-    p2.start(50)
-    if chan.voltage>=0.5 or chan2.voltage>0.5:
-        p.stop()
-        p2.stop()
-    else:
-        p.start(50)
-        p2.start(50)
+try: 
+    while 1:
+        
+        voltage_target=0.748
+        if chan2.voltage>voltage_target:
+            GPIO.output(26,0)
+            p2.start(100)
+            print('we shouldnt be here for long')
+        else:
+            p2.stop()
+            print('we in')
+        
+        print(chan1.voltage,chan2.voltage,chan2.voltage-voltage_target)
+
+except KeyboardInterrupt:
+    print('stopping')
+    p.stop()
+    p2.stop()

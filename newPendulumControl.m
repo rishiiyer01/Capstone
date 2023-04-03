@@ -17,7 +17,7 @@ density=1;
 v=150; %%roughly half the speed of sound, this is the freestream air speed
 A=0.25*pi*(6*25.4)^2;
 %C1=-CNa*leverArm*(0.5*density*v^2)/I;
-C1=14.4989;
+C1=14.61;
 C2=-CNa*(leverArm^2)*(0.5*density*v)/I;
 A=[0 0 1 0; 0 0 0 1; C1 0 C2 0; 0 C1 0 C2]; 
 %%note that damping is basically miniscule compared to spring constant
@@ -25,7 +25,7 @@ A=[0 0 1 0; 0 0 0 1; C1 0 C2 0; 0 C1 0 C2];
 %%differential equation
 %%our u input here is the angle, we will have to change this to represent
 %%the actual actuation of the piston, AJ i can explain this in person
-leverArmMotor=1;
+leverArmMotor=0.25;
 Thrust=92;%N
 %torque is then Thrust*LeverArmMotor*theta, theta is in our state
 %recall that our state vector is [theta1,theta2,thetaDot1,thetaDot2]
@@ -42,12 +42,12 @@ Bchopped=[C3 0 0 0; 0 C3 0 0];
 %%weight of our actuators on the optimization function, and Q defines the
 %%weight of how close we have to be to the reference (0 angle, 0 angular
 %%velocity) We can talk more on this
-Q=[1 0 0 0; 0 1 0 0; 0 0 1 0; 0 0 0 1];
-R=[1,0,0,0;0,1,0,0;0,0,1,0;0,0,0,1];
+Q=[100 0 0 0; 0 100 0 0; 0 0 10 0; 0 0 0 10];
+R=[1,0;0,1];
 %R=Q because i was lazy
 [K1,S1,P1] = lqr(A,B,Q,R);
 C=eye(4,4);
 D=zeros(4,2);
 sys=ss(A-B*K1,B,C,D);
 
-step(sys)
+impulse(sys)

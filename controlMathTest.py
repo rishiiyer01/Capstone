@@ -17,7 +17,7 @@ leverArmMotor=0.25
 Thrust=92
 C3=Thrust*leverArmMotor/I
 B=[[0, 0], [0, 0], [C3, 0],[0, C3]]
-Q=10000*np.eye(4)
-R=0.001*np.eye(2)
+Q=1000*np.eye(4)
+R=np.eye(2)
 K, S, E = c.lqr(A, B, Q, R)
 print(K)

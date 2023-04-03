@@ -36,13 +36,22 @@ chan2=AnalogIn(mcp2, MCP.P0)
 try: 
     while 1:
         
-        voltage_target=0.748
-        if chan2.voltage>voltage_target:
-            GPIO.output(26,0)
-            p2.start(100)
+        voltage_target=1.35
+        if chan1.voltage<voltage_target:
+            GPIO.output(26,1)
+            p.start(50)
+            print('we shouldnt be here for long')
+        else:
+        
+            p.stop()
+            print('we in')
+        if chan2.voltage<voltage_target:
+            GPIO.output(4,1)
+            p2.start(50)
             print('we shouldnt be here for long')
         else:
             p2.stop()
+           
             print('we in')
         
         print(chan1.voltage,chan2.voltage,chan2.voltage-voltage_target)

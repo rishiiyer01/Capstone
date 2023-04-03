@@ -1,6 +1,7 @@
 import numpy as np
 import control.matlab as c
-import keyboard
+import time
+
 I=4
 leverArm=0.1 #cp-cg, center of pressure-center of gravity
 CNa=37*np.pi/180
@@ -17,8 +18,10 @@ leverArmMotor=0.25
 Thrust=92
 C3=Thrust*leverArmMotor/I
 B=[[0, 0], [0, 0], [C3, 0],[0, C3]]
-Q=10000*np.eye(4)
-R=0.001*np.eye(2)
+Q=100*np.eye(4)
+Q[(3,3)]=10
+Q[(2,2)]=10
+R=np.eye(2)
 K, S, E = c.lqr(A, B, Q, R)
 print(K)
 
@@ -85,8 +88,10 @@ def f2(theta):
     
     theta1=float(theta[0])
     theta2=float(theta[1])
+    theta1= max(min(theta1, np.pi/12), -np.pi/12)
+    theta2= max(min(theta2, np.pi/12), -np.pi/12)
     
-    thetad=theta1*np.pi/180
+    thetad=theta1
     R=4.303
     a=2.065
     L=3.1259
@@ -96,7 +101,7 @@ def f2(theta):
     
     s1=(R*np.cos(thetad)+a*np.sin(thetad)-y20)-((L**2)-(R*np.sin(thetad) -a*np.cos(thetad)-x2)**2)**0.5
     
-    thetad2=theta2*np.pi/180
+    thetad2=theta2
     #s2
     s2=(R*np.cos(thetad2)+a*np.sin(thetad2)-y20)-((L**2)-(R*np.sin(thetad2) -a*np.cos(thetad2)-x2)**2)**0.5
     return(s1,s2)
@@ -104,34 +109,46 @@ def f2(theta):
         
 def pwm_actuator(K,state,chan,chan2,time,*args,**kwargs):
     
-    theta_target=5*np.matmul(K,state)
+    theta_target=0.01*np.matmul(K,state)
     
     s1target,s2target=f2(theta_target)
     s1target=s1target+0.8
     s2target=s2target+0.8
+    print(s1target,s2target)
     voltage_target=0.25*(3.1-0.16)*s1target+0.16
     voltage_target2=0.25*(3.1-0.16)*s2target+0.16
-    max_voltage=1.44625
-    voltage_target = max(min(voltage_target, max_voltage), 0)
-    voltage_target2 = max(min(voltage_target2, max_voltage), 0)
-
+    #max_voltage=1.44625
+    max_voltage=1.35
+   
+    voltage_target = max(min(voltage_target, max_voltage), 0.33)
+    voltage_target2 = max(min(voltage_target2, max_voltage), 0.33)
+    print(voltage_target,voltage_target2)
     if chan.voltage-voltage_target<0:
         GPIO.output(4,1)
-        p.start(30)
+        p.start(100)
     else:
         GPIO.output(4,0)
-        p.start(30)
+        p.start(100)
     if chan2.voltage-voltage_target2<0:
         GPIO.output(26,1)
-        p2.start(30)
+        p2.start(100)
     else:
         GPIO.output(26,0)
-        p2.start(30)
+        p2.start(100)
     #print(time.time()-start,'*******',state,'***',voltage_target,s1target)
+
+    return([float(theta_target[0]), float(theta_target[1])])
     
     
 
+file = open("./DataLogging/" + time.strftime("%Y.%m.%d-%H.%M.%S") + ".csv", 'w')
+
+file.write("Time,Euler1,Euler2,Gyro1,Gyro2m,target_theta1,target_theta2,target_stroke1,target_stroke2\n")
+
+loop = 0
 while 1:
+
+    loop = loop + 1
     
     try :
         
@@ -141,16 +158,20 @@ while 1:
             
             #print(chan.voltage,chan2.voltage,sensor.euler)
             #print(sensor.euler)
-            state=np.array([[sensor.euler[1]],[sensor.euler[2]],[sensor._gyro[1]],[sensor._gyro[2]]])
-            print(state)
+            state=np.array([[sensor.euler[1]-1],[sensor.euler[2]-1],[sensor._gyro[1]],[sensor._gyro[2]]])
+            #print(state)
             coordTransform=np.array([[np.cos(-np.pi/4),-np.sin(-np.pi/4),0,0],[np.sin(-np.pi/4),np.cos(-np.pi/4),0,0],[0,0,np.cos(-np.pi/4),-np.sin(-np.pi/4)],[0,0,np.sin(-np.pi/4),-np.cos(-np.pi/4)]])
             state=-np.matmul(coordTransform,state)
             state[0]=-state[0]
             state[2]=-state[2]
-            print(state)
-            pwm_actuator(K,state,chan,chan2,time)
+            #print(state)
+            thetas = pwm_actuator(K,state,chan,chan2,time)
             #print(sensor._read_register(0x55),sensor._read_register(0x56),sensor._read_register(0x57),sensor._read_register(0x58),sensor._read_register(0x59),sensor._read_register(0x5A),sensor._read_register(0x5B),sensor._read_register(0x5C),sensor._read_register(0x5D),sensor._read_register(0x5E),sensor._read_register(0x5F),sensor._read_register(0x60),sensor._read_register(0x61),sensor._read_register(0x62),sensor._read_register(0x63),sensor._read_register(0x64),sensor._read_register(0x65),sensor._read_register(0x66),sensor._read_register(0x67),sensor._read_register(0x68),sensor._read_register(0x69),sensor._read_register(0x6A))
-            
+            print(sensor.euler[1],sensor.euler[2])
+
+            if loop % 50 == 0:
+                file.write(','.join([str(time.strftime("%H:%M:%S")), str(sensor.euler[1] - 1), str(sensor.euler[2]-2), str(sensor._gyro[1]), str(sensor._gyro[2]), str(thetas[0]), str(thetas[1]), str(chan.voltage), str(chan2.voltage)]) + '\n')
+
             continue 
         else: 
             print(sensor.euler,sensor.calibration_status)
@@ -166,5 +187,7 @@ while 1:
         p.stop()
         p2.stop()
 
+
 p.stop()
 p2.stop()
+file.close()

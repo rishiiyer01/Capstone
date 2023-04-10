@@ -48,6 +48,7 @@ R=[1,0;0,1];
 [K1,S1,P1] = lqr(A,B,Q,R);
 C=eye(4,4);
 D=zeros(4,2);
-sys=ss(A-B*K1,B,C,D);
 
-impulse(sys)
+sys=ss(A-B*K1,B,C,D);
+step(sys)
+

@@ -22,12 +22,13 @@ GPIO.setup(13,GPIO.OUT)
 p2=GPIO.PWM(13,1000)
 # create the spi bus
 spi = busio.SPI(clock=board.SCK, MOSI=board.MOSI, MISO=board.MISO)
+print(board.SCK,board.MOSI,board.MISO)
 # create the cs (chip select)
 cs = digitalio.DigitalInOut(board.D5)
 cs2=digitalio.DigitalInOut(board.D6)
 # create the mcp object
-mcp = MCP.MCP3008(spi, cs2)
-mcp2=MCP.MCP3008(spi,cs)
+mcp = MCP.MCP3008(spi, cs)
+mcp2=MCP.MCP3008(spi,cs2)
 
 
 chan1 = AnalogIn(mcp, MCP.P0)
@@ -36,17 +37,17 @@ chan2=AnalogIn(mcp2, MCP.P0)
 try: 
     while 1:
         
-        voltage_target=1.35
-        if chan1.voltage<voltage_target:
-            GPIO.output(26,1)
+        voltage_target=0.9
+        if chan1.voltage>voltage_target:
+            GPIO.output(4,0)
             p.start(50)
             print('we shouldnt be here for long')
         else:
         
             p.stop()
             print('we in')
-        if chan2.voltage<voltage_target:
-            GPIO.output(4,1)
+        if chan2.voltage>voltage_target:
+            GPIO.output(26,0)
             p2.start(50)
             print('we shouldnt be here for long')
         else:

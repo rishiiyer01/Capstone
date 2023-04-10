@@ -58,8 +58,8 @@ p2 = GPIO.PWM(13, 1000)
 cs = digitalio.DigitalInOut(board.D5)
 cs2 = digitalio.DigitalInOut(board.D6)
 # create the mcp object
-mcp = MCP.MCP3008(spi, cs2)
-mcp2 = MCP.MCP3008(spi, cs)
+mcp = MCP.MCP3008(spi, cs)
+mcp2 = MCP.MCP3008(spi, cs2)
 # create an analog input channel on pin 0
 chan = AnalogIn(mcp, MCP.P0)
 chan2 = AnalogIn(mcp2, MCP.P0)
@@ -110,11 +110,11 @@ def f2(theta):
 
 
 def pwm_actuator(K, state, chan, chan2, time, *args, **kwargs):
-    theta_target = 0.01 * np.matmul(K, state)
+    theta_target = 0.01*np.matmul(K, state)
 
     s1target, s2target = f2(theta_target)
-    s1target = s1target + 0.8
-    s2target = s2target + 0.8
+    s1target = s1target + 0.9
+    s2target = s2target + 0.9
     print(s1target, s2target)
     voltage_target = 0.25 * (3.1 - 0.16) * s1target + 0.16
     voltage_target2 = 0.25 * (3.1 - 0.16) * s2target + 0.16
@@ -123,7 +123,7 @@ def pwm_actuator(K, state, chan, chan2, time, *args, **kwargs):
 
     voltage_target = max(min(voltage_target, max_voltage), 0.33)
     voltage_target2 = max(min(voltage_target2, max_voltage), 0.33)
-    print(voltage_target, voltage_target2)
+    print(voltage_target, voltage_target2,chan.voltage,chan2.voltage)
     if chan.voltage - voltage_target < 0:
         GPIO.output(4, 1)
         p.start(100)
@@ -154,8 +154,8 @@ while 1:
 
             # print(chan.voltage,chan2.voltage,sensor.euler)
             # print(sensor.euler)
-            state = np.array([[sensor.euler[1] - 1], [sensor.euler[2] - 1], [sensor._gyro[1]], [sensor._gyro[2]]])
-            # print(state)
+            state = np.array([[sensor.euler[1]-0.4375], [sensor.euler[2]-1.875], [sensor._gyro[1]], [sensor._gyro[2]]])
+            #print(state)
             coordTransform = np.array(
                 [[np.cos(-np.pi / 4), -np.sin(-np.pi / 4), 0, 0], [np.sin(-np.pi / 4), np.cos(-np.pi / 4), 0, 0],
                  [0, 0, np.cos(-np.pi / 4), -np.sin(-np.pi / 4)], [0, 0, np.sin(-np.pi / 4), -np.cos(-np.pi / 4)]])
@@ -167,9 +167,9 @@ while 1:
             # print(sensor._read_register(0x55),sensor._read_register(0x56),sensor._read_register(0x57),sensor._read_register(0x58),sensor._read_register(0x59),sensor._read_register(0x5A),sensor._read_register(0x5B),sensor._read_register(0x5C),sensor._read_register(0x5D),sensor._read_register(0x5E),sensor._read_register(0x5F),sensor._read_register(0x60),sensor._read_register(0x61),sensor._read_register(0x62),sensor._read_register(0x63),sensor._read_register(0x64),sensor._read_register(0x65),sensor._read_register(0x66),sensor._read_register(0x67),sensor._read_register(0x68),sensor._read_register(0x69),sensor._read_register(0x6A))
             print(state[0], state[1])
 
-            cached_data.append(','.join([str(time.strftime("%H:%M:%S")), str(state[0]), str(state[1]),
-                                         str(state[2]), str(state[3]), str(thetas[0]), str(thetas[1]),
-                                         str(chan.voltage), str(chan2.voltage)]) + '\n')
+            cached_data.append(','.join([str(time.time()), str(state[0]), str(state[1]),
+                                        str(state[2]), str(state[3]), str(thetas[0]), str(thetas[1]),
+                                        str(chan.voltage), str(chan2.voltage)]) + '\n')
 
             if len(cached_data) > 200:
                 file.write(''.join(cached_data))
@@ -183,6 +183,7 @@ while 1:
         print('stopping')
         p.stop()
         p2.stop()
+        file.write(''.join(cached_data))
         break
 
     except:

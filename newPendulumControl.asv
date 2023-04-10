@@ -52,13 +52,10 @@ E=zeros(4,4);
 DelayT=struct('delay',td,'a',E,'b',B,'c',E,'d',D);
 
 
-sys=delayss(A,D,C,D,DelayT);
-NU = [1];
-NY = [1];
-NINT = [1];
-sysPade=pade(sys,NU,NY,NINT);
+sys=delayss(A,D,C,D,DelayT)
+sysPade=
 
-[K1,S1,P1] = lqr(sysPade,Q,R);
+[K1,S1,P1] = lqr(sys,Q,R);
 
 
 sys2=ss(A-B*K1,B,C,D);

@@ -31,7 +31,10 @@ Thrust=98;%N
 %recall that our state vector is [theta1,theta2,thetaDot1,thetaDot2]
 C3=Thrust*leverArmMotor/I;
 %B matrix in the dynamical system
-B=[0 0; 0 0; C3 0; 0 C3];
+%B=[0 0; 0 0; C3 0; 0 C3];
+%B with velocities
+td=1.56/1.44/2;
+B=[0 0 0 0; 0 0 0 0; C3 0 td 0; 0 C3 0 td];
 %%
 Bchopped=[C3 0 0 0; 0 C3 0 0];
 %%%from rishi Jan 16 2022, the B matrix that determines the optimal control
@@ -43,24 +46,24 @@ Bchopped=[C3 0 0 0; 0 C3 0 0];
 %%weight of how close we have to be to the reference (0 angle, 0 angular
 %%velocity) We can talk more on this
 Q=[1 0 0 0; 0 1 0 0; 0 0 10 0; 0 0 0 10];
-R=[100,0;0,100];
+R=Q;
 %R=Q because i was lazy
-td=1.56/1.44;
+
 C=eye(4,4);
-D=zeros(4,2);
+D=zeros(4,4);
 E=zeros(4,4);
-DelayT=struct('delay',td,'a',E,'b',B,'c',E,'d',D);
+%DelayT=struct('delay',td,'a',E,'b',B,'c',E,'d',D);
 
 
-sys=delayss(A,D,C,D,DelayT);
-NU = [1];
-NY = [1];
-NINT = [1];
-sysPade=pade(sys,NU,NY,NINT);
+%sys=delayss(A,D,C,D,DelayT);
+%NU = [1];
+%NY = [1];
+%NINT = [1];
+%sysPade=pade(sys,NU,NY,NINT);
 
-[K1,S1,P1] = lqr(sysPade,Q,R);
+[K1,S1,P1] = lqr(A,B,Q,R);
 
 
-sys2=ss(A-B*K1,B,C,D);
+sys=ss(A-B*K1,B,C,D);
 step(sys)
 

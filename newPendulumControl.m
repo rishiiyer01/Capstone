@@ -29,7 +29,7 @@ leverArmMotor=0.25;
 Thrust=98;%N
 %torque is then Thrust*LeverArmMotor*theta, theta is in our state
 %recall that our state vector is [theta1,theta2,thetaDot1,thetaDot2]
-C3=Thrust*leverArmMotor/I;
+C3=Thrust*leverArmMotor;
 %B matrix in the dynamical system
 %B=[0 0; 0 0; C3 0; 0 C3];
 %B with velocities

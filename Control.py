@@ -1,6 +1,7 @@
 import numpy as np
 import control.matlab as c
 import time
+import threading
 
 I = 4
 leverArm = 0.1  # cp-cg, center of pressure-center of gravity
@@ -22,7 +23,8 @@ Q = 100 * np.eye(4)
 Q[(3, 3)] = 10
 Q[(2, 2)] = 10
 R = np.eye(2)
-K, S, E = c.lqr(A, B, Q, R)
+#K, S, E = c.lqr(A, B, Q, R)
+K=np.array([[0.8, 0,0.5678, 0],[0, 0.8, 0, 0.5678]])
 print(K)
 
 import RPi.GPIO as GPIO
@@ -110,7 +112,7 @@ def f2(theta):
 
 
 def pwm_actuator(K, state, chan, chan2, time, *args, **kwargs):
-    theta_target = 0.01*np.matmul(K, state)
+    theta_target = np.matmul(K, state)
 
     s1target, s2target = f2(theta_target)
     s1target = s1target + 0.9
@@ -123,7 +125,7 @@ def pwm_actuator(K, state, chan, chan2, time, *args, **kwargs):
 
     voltage_target = max(min(voltage_target, max_voltage), 0.33)
     voltage_target2 = max(min(voltage_target2, max_voltage), 0.33)
-    print(voltage_target, voltage_target2,chan.voltage,chan2.voltage)
+    #print(voltage_target, voltage_target2,chan.voltage,chan2.voltage)
     if chan.voltage - voltage_target < 0:
         GPIO.output(4, 1)
         p.start(100)
@@ -139,6 +141,9 @@ def pwm_actuator(K, state, chan, chan2, time, *args, **kwargs):
     # print(time.time()-start,'*******',state,'***',voltage_target,s1target)
 
     return ([float(theta_target[0]), float(theta_target[1])])
+
+def write_to_file(file_obj, data_to_write):
+    file_obj.write(data_to_write)
 
 
 file = open("./DataLogging/" + time.strftime("%Y.%m.%d-%H.%M.%S") + ".csv", 'w')
@@ -165,14 +170,14 @@ while 1:
             # print(state)
             thetas = pwm_actuator(K, state, chan, chan2, time)
             # print(sensor._read_register(0x55),sensor._read_register(0x56),sensor._read_register(0x57),sensor._read_register(0x58),sensor._read_register(0x59),sensor._read_register(0x5A),sensor._read_register(0x5B),sensor._read_register(0x5C),sensor._read_register(0x5D),sensor._read_register(0x5E),sensor._read_register(0x5F),sensor._read_register(0x60),sensor._read_register(0x61),sensor._read_register(0x62),sensor._read_register(0x63),sensor._read_register(0x64),sensor._read_register(0x65),sensor._read_register(0x66),sensor._read_register(0x67),sensor._read_register(0x68),sensor._read_register(0x69),sensor._read_register(0x6A))
-            print(state[0], state[1])
+            print(state)
 
             cached_data.append(','.join([str(time.time()), str(state[0]), str(state[1]),
                                         str(state[2]), str(state[3]), str(thetas[0]), str(thetas[1]),
                                         str(chan.voltage), str(chan2.voltage)]) + '\n')
 
             if len(cached_data) > 200:
-                file.write(''.join(cached_data))
+                t = threading.Thread(target=write_to_file, args=(file, ''.join(cached_data)))
                 cached_data = []
 
             continue

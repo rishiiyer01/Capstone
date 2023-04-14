@@ -159,7 +159,7 @@ while 1:
 
             # print(chan.voltage,chan2.voltage,sensor.euler)
             # print(sensor.euler)
-            state = np.array([[sensor.euler[1]-0.4375], [sensor.euler[2]-1.875], [sensor._gyro[1]], [sensor._gyro[2]]])
+            state = np.array([[sensor.euler[1]-0.9], [sensor.euler[2]-1.25], [sensor._gyro[1]], [sensor._gyro[2]]])
             #print(state)
             coordTransform = np.array(
                 [[np.cos(-np.pi / 4), -np.sin(-np.pi / 4), 0, 0], [np.sin(-np.pi / 4), np.cos(-np.pi / 4), 0, 0],
@@ -167,7 +167,7 @@ while 1:
             state = -np.matmul(coordTransform, state)
             state[0] = -state[0]
             state[2] = -state[2]
-            # print(state)
+            #print(state)
             thetas = pwm_actuator(K, state, chan, chan2, time)
             # print(sensor._read_register(0x55),sensor._read_register(0x56),sensor._read_register(0x57),sensor._read_register(0x58),sensor._read_register(0x59),sensor._read_register(0x5A),sensor._read_register(0x5B),sensor._read_register(0x5C),sensor._read_register(0x5D),sensor._read_register(0x5E),sensor._read_register(0x5F),sensor._read_register(0x60),sensor._read_register(0x61),sensor._read_register(0x62),sensor._read_register(0x63),sensor._read_register(0x64),sensor._read_register(0x65),sensor._read_register(0x66),sensor._read_register(0x67),sensor._read_register(0x68),sensor._read_register(0x69),sensor._read_register(0x6A))
             print(state)

@@ -38,8 +38,8 @@ try:
     while 1:
         
         voltage_target=0.8215
-        if chan1.voltage>voltage_target:
-            GPIO.output(4,0)
+        if chan1.voltage<voltage_target:
+            GPIO.output(4,1)
             p.start(100)
             print('we shouldnt be here for long')
         else:

@@ -50,6 +50,7 @@ try:
             GPIO.output(26,0)
             p2.start(100)
             print('we shouldnt be here for long')
+        else: 
             p2.stop()
            
             print('we in')

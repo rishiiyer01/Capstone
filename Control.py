@@ -25,7 +25,7 @@ Q[(3, 3)] = 10
 Q[(2, 2)] = 10
 R = np.eye(2)
 #K, S, E = c.lqr(A, B, Q, R)
-K=np.array([[0.8, 0,0.5678, 0],[0, 0.8, 0, 0.5678]])
+K=np.array([[0.7, 0,0.8, 0],[0, 0.7, 0, 0.8]])
 print(K)
 
 import RPi.GPIO as GPIO
@@ -153,6 +153,10 @@ file = open("./DataLogging/" + time.strftime("%Y.%m.%d-%H.%M.%S") + ".csv", 'w')
 file.write("Time,Euler1,Euler2,Gyro1,Gyro2m,target_theta1,target_theta2,target_stroke1,target_stroke2\n")
 
 cached_data = []
+euler1 = [0,0]
+euler2 = [0,0]
+gyro1 = [0,0]
+gyro2 = [0,0]
 while 1:
 
     try:
@@ -161,8 +165,18 @@ while 1:
 
             # print(chan.voltage,chan2.voltage,sensor.euler)
             # print(sensor.euler)
+            #euler1[0]=euler1[1]
+            #euler2[0]=euler2[1]
+            #gyro1[0]=gyro1[1]
+            #gyro2[0]=gyro2[1]
+            #euler1[1]=((sensor.euler[1]-0.44)*np.pi/180)
+            #euler2[1]=((sensor.euler[2]-1.625)*np.pi/180)
+            #gyro1[1]=(sensor._gyro[1])
+            #gyro2[1]=(sensor._gyro[2])
+            #state = np.array([[np.average([euler1])], [np.average([euler2])], [np.average([gyro1])], [np.average([gyro2])]])
             state = np.array([[(sensor.euler[1]-0.44)*np.pi/180], [(sensor.euler[2]-1.625)*np.pi/180], [sensor._gyro[1]], [sensor._gyro[2]]])
             #print(state)
+            
             coordTransform = np.array(
                 [[np.cos(-np.pi / 4), -np.sin(-np.pi / 4), 0, 0], [np.sin(-np.pi / 4), np.cos(-np.pi / 4), 0, 0],
                  [0, 0, np.cos(-np.pi / 4), -np.sin(-np.pi / 4)], [0, 0, np.sin(-np.pi / 4), np.cos(-np.pi / 4)]])

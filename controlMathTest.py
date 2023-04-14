@@ -1,23 +1,22 @@
 import numpy as np
 import control.matlab as c
 import keyboard
-I=4
-leverArm=0.1 #cp-cg, center of pressure-center of gravity
-CNa=37*np.pi/180
-#putting aerodynamic plant+control in a system of form xdot=Ax+Bu, where
-#x represents the state
-density=1;
-v=150; #roughly half the speed of sound, this is the freestream air speed
-A=0.25*np.pi*(6*25.4)**2;
-#C1=-CNa*leverArm*(0.5*density*v**2)/I;
-C1=14.6
-C2=-CNa*(leverArm**2)*(0.5*density*v)/I;
-A=np.array([[0, 0, 1, 0], [0, 0, 0, 1], [C1, 0, C2, 0], [0,C1, 0, C2]]); 
-leverArmMotor=0.25
-Thrust=92
-C3=Thrust*leverArmMotor/I
-B=[[0, 0], [0, 0], [C3, 0],[0, C3]]
-Q=1000*np.eye(4)
-R=np.eye(2)
-K, S, E = c.lqr(A, B, Q, R)
-print(K)
+import scipy.optimize
+def f3(theta,*args):
+    theta1 = float(theta[0])
+    theta2 = float(theta[1])
+    R = 4.303
+    a = 2.065
+    L = 3.1259
+    x2 = -2.625
+    y20 = 1.2385
+    L1=-s1+(R * np.cos(theta1) + a * np.sin(theta1) - y20) - (
+            (L ** 2) - (R * np.sin(theta1) - a * np.cos(theta1) - x2) ** 2) ** 0.5
+    L2=-s2+(R * np.cos(theta2) + a * np.sin(theta2) - y20) - (
+            (L ** 2) - (R * np.sin(theta2) - a * np.cos(theta2) - x2) ** 2) ** 0.5
+    return(L1,L2)
+s1=0.8
+s2=0.6
+sol=scipy.optimize.root(f3,[0,0],args=(s1,s2))
+theta1,theta2=sol.x
+print(theta1)

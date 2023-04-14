@@ -54,8 +54,8 @@ print(sensor._read_register(0x55))
 #sensor.mode=adafruit_bno055.NDOF_MODE
 while 1:
     if sensor.calibration_status[1]==3:
-        GPIO.output(4,1)
-        GPIO.output(26,1)
+        GPIO.output(4,0)
+        GPIO.output(26,0)
         if chan.voltage>=0.55 or chan2.voltage>=0.55:
             p.stop()
         else:

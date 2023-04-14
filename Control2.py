@@ -2,7 +2,7 @@ import numpy as np
 import control.matlab as c
 import time
 import threading
-
+import scipy.optimize
 I = 4
 leverArm = 0.1  # cp-cg, center of pressure-center of gravity
 CNa = 37 * np.pi / 180
@@ -12,19 +12,31 @@ density = 1
 v = 150;  # roughly half the speed of sound, this is the freestream air speed
 A = 0.25 * np.pi * (6 * 25.4) ** 2
 # C1=-CNa*leverArm*(0.5*density*v**2)/I;
-C1 = 14.6
+C1 = 14.7
+#middle case
+#C1=9.898
+#final stable
+#C1=0.1
 C2 = -CNa * (leverArm ** 2) * (0.5 * density * v) / I
-A = np.array([[0, 0, 1, 0], [0, 0, 0, 1], [C1, 0, C2, 0], [0, C1, 0, C2]]);
-leverArmMotor = 0.25
 Thrust = 92
+leverArmMotor = 0.25
 C3 = Thrust * leverArmMotor / I
-B = [[0, 0], [0, 0], [C3, 0], [0, C3]]
-Q = 100 * np.eye(4)
-Q[(3, 3)] = 10
-Q[(2, 2)] = 10
-R = np.eye(2)
-#K, S, E = c.lqr(A, B, Q, R)
-K=np.array([[0.8, 0,0.5678, 0],[0, 0.8, 0, 0.5678]])
+A=np.array([[0, 0, 1, 0,0,0],
+            [0, 0, 0, 1,0,0],
+            [C1, 0, C2, 0,C3,0],
+            [0,C1, 0, C2,0,C3],
+            [0,0, 0, 0,0,0],
+            [0,0, 0, 0,0,0]]); 
+
+
+B=[[0, 0], [0, 0], [0, 0],[0, 0],[1, 0],[0, 1]]
+Q=np.array([[10000,0,0,0,0,0],[0,10000,0,0,0,0],[0,0,1,0,0,0],[0,0,0,1,0,0],[0,0,0,0,1,0],[0,0,0,0,0,1]])
+R=np.eye(2)
+K, S, E = c.lqr(A, B, Q, R)
+K[0,4]=0
+K[1,5]=0
+K[0,0]=1000
+K[1,1]=1000
 print(K)
 
 import RPi.GPIO as GPIO
@@ -109,38 +121,77 @@ def f2(theta):
     s2 = (R * np.cos(thetad2) + a * np.sin(thetad2) - y20) - (
             (L ** 2) - (R * np.sin(thetad2) - a * np.cos(thetad2) - x2) ** 2) ** 0.5
     return (s1, s2)
+def f3(theta,*args):
+    theta1 = float(theta[0])
+    theta2 = float(theta[1])
+    R = 4.303
+    a = 2.065
+    L = 3.1259
+    x2 = -2.625
+    y20 = 1.2385
+    L1=-s1+(R * np.cos(theta1) + a * np.sin(theta1) - y20) - (
+            (L ** 2) - (R * np.sin(theta1) - a * np.cos(theta1) - x2) ** 2) ** 0.5
+    L2=-s2+(R * np.cos(theta2) + a * np.sin(theta2) - y20) - (
+            (L ** 2) - (R * np.sin(theta2) - a * np.cos(theta2) - x2) ** 2) ** 0.5
+    return(L1,L2)
 
+
+
+
+def stroke_speed(theta, theta_speed):
+    # Constant
+    rad = 4.303
+    a = 2.065
+    length = 3.1259
+    x2 = -2.625
+
+    s_dot = theta_speed * (a * np.cos(theta) - rad * np.sin(theta) + ((rad * np.sin(theta) - a*np.cos(theta) - x2) * (
+                                       rad * np.cos(theta) + a * np.sin(theta)) /
+                           ((length ** 2 - (rad * np.sin(theta) - a * np.cos(theta) - x2) ** 2) ** .5)))
+    return s_dot
 
 def pwm_actuator(K, state, chan, chan2, time, *args, **kwargs):
-    theta_target = np.matmul(K, state)
+    # Assuming that this is changed to read back theta velocities
+    theta_v_target = 1 * np.matmul(K, state)
 
-    s1target, s2target = f2(theta_target)
-    s1target = s1target + 0.9
-    s2target = s2target + 0.9
-    print(s1target, s2target)
-    voltage_target = 0.25 * (3.1 - 0.16) * s1target + 0.16
-    voltage_target2 = 0.25 * (3.1 - 0.16) * s2target + 0.16
-    # max_voltage=1.44625
+    theta_v_target1 = float(theta_v_target[0])
+    theta_v_target2 = float(theta_v_target[1])
+
+    # Assumes that theta 1 and theta 2 are at indexs 4 and 5 of the state matrix
+    theta_1 = float(state[4])
+    theta_2 = float(state[5])
+
+    s_dot1 = stroke_speed(theta_1, theta_v_target1)
+    s_dot2 = stroke_speed(theta_2, theta_v_target2)
+
     max_voltage = 1.35
+    min_voltage = 0.18
 
-    voltage_target = max(min(voltage_target, max_voltage), 0.33)
-    voltage_target2 = max(min(voltage_target2, max_voltage), 0.33)
-    #print(voltage_target, voltage_target2,chan.voltage,chan2.voltage)
-    if chan.voltage - voltage_target < 0:
+    max_speed = 1.4
+
+    voltage_scalar1 = min(100, 100 * abs(s_dot1 / max_speed))
+    voltage_scalar2 = min(100, 100 * abs(s_dot2 / max_speed))
+
+    # Actuator 1
+    if chan.voltage < max_voltage and s_dot1 > 0:
         GPIO.output(4, 1)
         p.start(100)
-    else:
+    elif chan.voltage > min_voltage and s_dot1 < 0:
         GPIO.output(4, 0)
         p.start(100)
-    if chan2.voltage - voltage_target2 < 0:
+    else:
+        p.stop()
+
+    if chan2.voltage < max_voltage and s_dot2 > 0:
         GPIO.output(26, 1)
         p2.start(100)
-    else:
+    elif chan2.voltage > min_voltage and s_dot2 < 0:
         GPIO.output(26, 0)
         p2.start(100)
-    # print(time.time()-start,'*******',state,'***',voltage_target,s1target)
+    else:
+        p2.stop()
 
-    return ([float(theta_target[0]), float(theta_target[1])])
+    return [theta_v_target1, theta_v_target2]
 
 def write_to_file(file_obj, data_to_write):
     file_obj.write(data_to_write)
@@ -151,6 +202,7 @@ file = open("./DataLogging/" + time.strftime("%Y.%m.%d-%H.%M.%S") + ".csv", 'w')
 file.write("Time,Euler1,Euler2,Gyro1,Gyro2m,target_theta1,target_theta2,target_stroke1,target_stroke2\n")
 
 cached_data = []
+
 while 1:
 
     try:
@@ -159,18 +211,23 @@ while 1:
 
             # print(chan.voltage,chan2.voltage,sensor.euler)
             # print(sensor.euler)
-            state = np.array([[(sensor.euler[1]-0.44)*np.pi/180], [(sensor.euler[2]-1.625)*np.pi/180], [sensor._gyro[1]], [sensor._gyro[2]]])
+            s1=-0.9+(chan.voltage-0.18)/0.735
+            s2=-0.9+(chan2.voltage-0.18)/0.735
+            sol=scipy.optimize.root(f3,[0,0],args=(s1,s2))
+            theta1,theta2=sol.x
+            #theta1=0
+            #theta2=0
+            state = np.array([[(sensor.euler[1]-0.44)*np.pi/180], [(sensor.euler[2]-1.625)*np.pi/180], [sensor._gyro[1]], [sensor._gyro[2]],[theta1],[theta2]])
             #print(state)
             coordTransform = np.array(
-                [[np.cos(-np.pi / 4), -np.sin(-np.pi / 4), 0, 0], [np.sin(-np.pi / 4), np.cos(-np.pi / 4), 0, 0],
-                 [0, 0, np.cos(-np.pi / 4), -np.sin(-np.pi / 4)], [0, 0, np.sin(-np.pi / 4), np.cos(-np.pi / 4)]])
+                [[np.cos(-np.pi / 4), -np.sin(-np.pi / 4), 0, 0,0,0], [np.sin(-np.pi / 4), np.cos(-np.pi / 4), 0, 0,0,0],
+                 [0, 0, np.cos(-np.pi / 4), -np.sin(-np.pi / 4),0,0], [0, 0, np.sin(-np.pi / 4), np.cos(-np.pi / 4),0,0],[0,0,0,0,1,0],[0,0,0,0,0,1]])
             state = -np.matmul(coordTransform, state)
             state[0] = -state[0]
             state[2] = -state[2]
-            #print(state) 
+            #print(state)
             thetas = pwm_actuator(K, state, chan, chan2, time)
             # print(sensor._read_register(0x55),sensor._read_register(0x56),sensor._read_register(0x57),sensor._read_register(0x58),sensor._read_register(0x59),sensor._read_register(0x5A),sensor._read_register(0x5B),sensor._read_register(0x5C),sensor._read_register(0x5D),sensor._read_register(0x5E),sensor._read_register(0x5F),sensor._read_register(0x60),sensor._read_register(0x61),sensor._read_register(0x62),sensor._read_register(0x63),sensor._read_register(0x64),sensor._read_register(0x65),sensor._read_register(0x66),sensor._read_register(0x67),sensor._read_register(0x68),sensor._read_register(0x69),sensor._read_register(0x6A))
-            
             print(state)
 
             cached_data.append(','.join([str(time.time()), str(state[0]), str(state[1]),
@@ -192,10 +249,10 @@ while 1:
         file.write(''.join(cached_data))
         break
 
-    except:
-        print('yourmom')
-        p.stop()
-        p2.stop()
+    #except:
+     #   print('yourmom')
+      #  p.stop()
+       # p2.stop()
 
 p.stop()
 p2.stop()

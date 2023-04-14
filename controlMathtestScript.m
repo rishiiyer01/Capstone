@@ -11,7 +11,8 @@ A=0.25*pi*(6*25.4)^2;
 C1=14;
 C2=-CNa*(leverArm^2)*(0.5*density*v)/I;
 A=[0 0 1 0; 0 0 0 1; C1 0 C2 0; 0 C1 0 C2]; 
-K=[14 0 0 0; 0 14 0 0; 0 0 0 0; 0 0 0 0]; 
+K=[0.6 0 0 0; 0 0.6 0 0; 0 0 10 0; 0 0 10 0]; 
+E=[0 0 0 0; 0 0 0 0; 25 0 0 0; 0 25 0 0]; 
 
 leverArmMotor=0.25;
 Thrust=98;%N
@@ -24,6 +25,11 @@ td=1.56/1.44/2;
 C=eye(4,4);
 D=zeros(4,4);
 B=eye(4,4);
+sensorNoise=[0.01;0.01;0.05;0.05];
+sensorNoiseMatrix=sensorNoise*transpose(sensorNoise);
 
-sys=ss(A-K,B,C,D);
+
+
+sys=ss(A-E*K,B,C,D);
+pole(sys)
 step(sys)

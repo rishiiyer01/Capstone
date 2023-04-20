@@ -35,8 +35,11 @@ R=np.eye(2)
 K, S, E = c.lqr(A, B, Q, R)
 K[0,4]=0
 K[1,5]=0
-K[0,0]=1000
-K[1,1]=1000
+K[0,0]=100
+K[0,2]=1000
+K[1,1]=100
+K[1,3]=1000
+
 print(K)
 
 import RPi.GPIO as GPIO

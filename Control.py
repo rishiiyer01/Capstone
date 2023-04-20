@@ -12,22 +12,23 @@ density = 1
 v = 150;  # roughly half the speed of sound, this is the freestream air speed
 A = 0.25 * np.pi * (6 * 25.4) ** 2
 # C1=-CNa*leverArm*(0.5*density*v**2)/I;
-C1 = 14.6
-C2 = -CNa * (leverArm ** 2) * (0.5 * density * v) / I
+C1 = 0.1
+C2 = -0.001
 A = np.array([[0, 0, 1, 0], [0, 0, 0, 1], [C1, 0, C2, 0], [0, C1, 0, C2]]);
-leverArmMotor = 0.25
+leverArmMotor = 0.1
 Thrust = 97
 I_stand = .716
 C3 = Thrust * leverArmMotor / I_stand
 B = [[0, 0], [0, 0], [C3, 0], [0, C3]]
-Q = 100 * np.eye(4)
-Q[(3, 3)] = 10
-Q[(2, 2)] = 10
-R = np.eye(2)
-#K, S, E = c.lqr(A, B, Q, R)
-K=np.array([[0.7, 0,0.8, 0],[0, 0.7, 0, 0.8]])
+Q = np.eye(4)
+Q[(3, 3)] = 1.25
+Q[(2, 2)] = 1.25
+R = 7*np.eye(2)
+K, S, E = c.lqr(A, B, Q, R)
+K[0,2]=K[0,2]+0.1
+K[1,3]=K[1,3]-0.1
+K=np.array([[0.7, 0,1.2, 0],[0, 0.7, 0, 0.8]])
 print(K)
-
 import RPi.GPIO as GPIO
 
 # 252 255 217 255 223 255 41 2 223 255 242 5 255 255 251 255 0 0 232 3 98 5
@@ -175,7 +176,7 @@ while 1:
             #gyro2[1]=(sensor._gyro[2])
             #state = np.array([[np.average([euler1])], [np.average([euler2])], [np.average([gyro1])], [np.average([gyro2])]])
             state = np.array([[(sensor.euler[1]-0.44)*np.pi/180], [(sensor.euler[2]-1.625)*np.pi/180], [sensor._gyro[1]], [sensor._gyro[2]]])
-            #print(state)
+            #print(state*180/np.pi)
             
             coordTransform = np.array(
                 [[np.cos(-np.pi / 4), -np.sin(-np.pi / 4), 0, 0], [np.sin(-np.pi / 4), np.cos(-np.pi / 4), 0, 0],
@@ -183,7 +184,8 @@ while 1:
             state = -np.matmul(coordTransform, state)
             state[0] = -state[0]
             state[2] = state[2]
-            state[3]=-state[3]
+            state[3]= -state[3]
+            #state[3]=state[3]-1.2*state[2]
             #print(state) 
             thetas = pwm_actuator(K, state, chan, chan2, time)
             # print(sensor._read_register(0x55),sensor._read_register(0x56),sensor._read_register(0x57),sensor._read_register(0x58),sensor._read_register(0x59),sensor._read_register(0x5A),sensor._read_register(0x5B),sensor._read_register(0x5C),sensor._read_register(0x5D),sensor._read_register(0x5E),sensor._read_register(0x5F),sensor._read_register(0x60),sensor._read_register(0x61),sensor._read_register(0x62),sensor._read_register(0x63),sensor._read_register(0x64),sensor._read_register(0x65),sensor._read_register(0x66),sensor._read_register(0x67),sensor._read_register(0x68),sensor._read_register(0x69),sensor._read_register(0x6A))
